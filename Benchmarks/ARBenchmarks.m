@@ -123,7 +123,7 @@ extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
     NSMutableDictionary *arrayForBenchmark = NSMutableDictionary.new;
     NSMutableDictionary *arrayForInBenchmark = NSMutableDictionary.new;
 
-    arrayForBenchmark[@"name"] = @"for (i = 0; i < array.count; i++) [array[i] description];";
+    arrayForBenchmark[@"name"] = @"for (i = 0; i < array.count; i++) [array[i] description]";
     arrayForInBenchmark[@"name"] = @"for (id object in array) [object description]";
 
     NSLog(@"Running %@ benchmark. Iterations: %zu Sample: %zu Content: \"%@\"", arrayForBenchmark[@"name"], self.iterations, self.sample, self.content);
