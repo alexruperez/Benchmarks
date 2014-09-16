@@ -17,6 +17,8 @@ You can add your own benchmarks at [ARBenchmarks.m](https://github.com/alexruper
 * Contributions are very welcome! Create new amazing benchmarks!
 * Attribution is appreciated (let's spread the word!), but not mandatory.
 
-@sferik [Erik Michaels-Ober - Writing Fast Ruby](https://speakerdeck.com/sferik/writing-fast-ruby)
-@mattt aka. @NSHipster [Mattt Thompson - Benchmarking](http://nshipster.com/benchmarking/)
-@baruco
+[@sferik](http://github.com/sferik) [Erik Michaels-Ober - Writing Fast Ruby](https://speakerdeck.com/sferik/writing-fast-ruby)
+
+[@mattt](http://github.com/mattt) aka. [@NSHipster](http://github.com/NSHipster) [Mattt Thompson - Benchmarking](http://nshipster.com/benchmarking/)
+
+[@baruco](http://github.com/baruco) [Barcelona Ruby Conference 2014](http://www.baruco.org)
