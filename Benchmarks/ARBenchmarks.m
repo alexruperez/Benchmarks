@@ -27,7 +27,7 @@
 
 + (void)load
 {
-    [NSUserDefaults.standardUserDefaults registerDefaults:@{@"iterations_preference": @100, @"sample_preference": @100, @"content_preference": @"", }];
+    [NSUserDefaults.standardUserDefaults registerDefaults:@{@"iterations_preference": @"100", @"sample_preference": @"100", @"content_preference": @"", }];
 }
 
 + (NSUserDefaults *)userDefaults
@@ -50,9 +50,21 @@
     return [self.userDefaults objectForKey:@"content_preference"];
 }
 
++ (NSArray *)sampleArray
+{
+    NSInteger sample = self.sample;
+    NSString *content = self.content;
+    NSMutableArray *sampleArray = [NSMutableArray arrayWithCapacity:sample];
+    for (size_t i = 0; i < sample; i++)
+    {
+        [sampleArray addObject:content];
+    }
+    return sampleArray.copy;
+}
+
 + (NSArray *)runBenchmarks
 {
-    NSArray *benchmarks = @[self.mutableArrayBenchmarkSet, self.arrayBenchmarkSet, self.blockBenchmarkSet];
+    NSArray *benchmarks = @[self.mutableArrayBenchmarkSet, self.arrayBenchmarkSet, self.arraySortingBenchmarkSet];
 
     for (ARBenchmarkSet *benchmarkSet in benchmarks)
     {
@@ -62,22 +74,26 @@
     return benchmarks;
 }
 
+#pragma mark - Benchmarks
+
 + (ARBenchmarkSet *)mutableArrayBenchmarkSet
 {
+    size_t sample = self.sample;
+    NSString *content = self.content;
     return [ARBenchmarkSet benchmarkSetWithBenchmarks:@[[ARBenchmark benchmarkWithName:@"[[NSMutableArray array] addObject:]" block:^{
         @autoreleasepool {
             NSMutableArray *mutableArray = [NSMutableArray array];
-            for (size_t i = 0; i < self.sample; i++)
+            for (size_t i = 0; i < sample; i++)
             {
-                [mutableArray addObject:self.content];
+                [mutableArray addObject:content];
             }
         }
     }], [ARBenchmark benchmarkWithName:@"[[NSMutableArray arrayWithCapacity] addObject:]" block:^{
         @autoreleasepool {
-            NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:self.sample];
-            for (size_t i = 0; i < self.sample; i++)
+            NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:sample];
+            for (size_t i = 0; i < sample; i++)
             {
-                [mutableArray addObject:self.content];
+                [mutableArray addObject:content];
             }
         }
     }]]];
@@ -85,21 +101,32 @@
 
 + (ARBenchmarkSet *)arrayBenchmarkSet
 {
-    NSMutableArray *sampleArray = [NSMutableArray arrayWithCapacity:self.sample];
-    for (size_t i = 0; i < self.sample; i++)
-    {
-        [sampleArray addObject:self.content];
-    }
-    return [ARBenchmarkSet benchmarkSetWithBenchmarks:@[[ARBenchmark benchmarkWithName:@"for (i = 0; i < array.count; i++) [array[i] method]" block:^{
+    NSArray *sampleArray = self.sampleArray;
+    return [ARBenchmarkSet benchmarkSetWithBenchmarks:@[[ARBenchmark benchmarkWithName:@"for (i = 0; i < NSArray.count; i++)" block:^{
         @autoreleasepool {
             for (size_t i = 0; i < sampleArray.count; i++)
             {
                 [sampleArray[i] description];
             }
         }
-    }], [ARBenchmark benchmarkWithName:@"for (id object in array) [object method]" block:^{
+    }], [ARBenchmark benchmarkWithName:@"for (id object in NSArray)" block:^{
         @autoreleasepool {
             for (id object in sampleArray)
+            {
+                [object description];
+            }
+        }
+    }], [ARBenchmark benchmarkWithName:@"[NSArray enumerateObjectsUsingBlock:]" block:^{
+        @autoreleasepool {
+            [sampleArray enumerateObjectsUsingBlock:^(id object, NSUInteger idx, BOOL *stop) {
+                [object description];
+            }];
+        }
+    }], [ARBenchmark benchmarkWithName:@"[[NSArray objectEnumerator] nextObject]" block:^{
+        @autoreleasepool {
+            NSEnumerator *enumerator = [sampleArray objectEnumerator];
+            id object;
+            while (object = [enumerator nextObject])
             {
                 [object description];
             }
@@ -107,19 +134,22 @@
     }]]];
 }
 
-+ (ARBenchmarkSet *)blockBenchmarkSet
++ (ARBenchmarkSet *)arraySortingBenchmarkSet
 {
-    return [ARBenchmarkSet benchmarkSetWithBenchmarks:@[[ARBenchmark benchmarkWithName:@"[object method]" block:^{
+    NSArray *sampleArray = self.sampleArray;
+    return [ARBenchmarkSet benchmarkSetWithBenchmarks:@[[ARBenchmark benchmarkWithName:@"[NSArray sortedArrayUsingDescriptors:]" block:^{
         @autoreleasepool {
-            NSObject *object = NSObject.new;
-            [object description];
+            [sampleArray sortedArrayUsingDescriptors:@[[[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES]]];
         }
-    }], [ARBenchmark benchmarkWithName:@"[object runBlock:^{[object method]}]" block:^{
+    }], [ARBenchmark benchmarkWithName:@"[NSArray sortedArrayUsingComparator:]" block:^{
         @autoreleasepool {
-            NSObject *object = NSObject.new;
-            [object runBlock:^{
-                [object description];
+            [sampleArray sortedArrayUsingComparator:^NSComparisonResult(NSObject *a, NSObject *b) {
+                return [a.description compare:b.description];
             }];
+        }
+    }], [ARBenchmark benchmarkWithName:@"[NSArray sortedArrayUsingSelector:]" block:^{
+        @autoreleasepool {
+            [sampleArray sortedArrayUsingSelector:@selector(compare:)];
         }
     }]]];
 }
