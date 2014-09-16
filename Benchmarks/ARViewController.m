@@ -15,8 +15,7 @@
 <UITableViewDataSource, UITableViewDelegate, IASKSettingsDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (weak, nonatomic) IBOutlet UIActivityIndicatorView *activityIndicatorView;
-@property (strong, nonatomic) NSArray *benchmarks;
+@property (strong, nonatomic) NSArray *benchmarkSets;
 
 @end
 
@@ -26,17 +25,17 @@
 {
     [super viewDidLoad];
 
-    [self runBenchmarks:self.navigationItem.rightBarButtonItem];
+    [self runBenchmarks];
 }
 
-- (NSArray *)benchmarkNumber:(NSUInteger)number
+- (ARBenchmarkSet *)benchmarkSet:(NSUInteger)set
 {
-    return self.benchmarks[number];
+    return self.benchmarkSets[set];
 }
 
-- (NSDictionary *)benchmarkNumber:(NSUInteger)number result:(NSUInteger)result
+- (ARBenchmark *)benchmarkSet:(NSUInteger)set benchmark:(NSUInteger)benchmark
 {
-    return self.benchmarks[number][result];
+    return [[self benchmarkSet:set] benchmark:benchmark];
 }
 
 - (IBAction)showSettings
@@ -46,16 +45,16 @@
     [self presentViewController:[[UINavigationController alloc] initWithRootViewController:settings] animated:YES completion:nil];
 }
 
-- (IBAction)runBenchmarks:(UIBarButtonItem *)barButtonItem
+- (IBAction)runBenchmarks
 {
-    barButtonItem.enabled = NO;
-    self.benchmarks = nil;
-    [self.tableView reloadData];
+    UIActivityIndicatorView *activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    [activityIndicatorView startAnimating];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:activityIndicatorView];
     [NSOperationQueue.new addOperationWithBlock:^{
-        self.benchmarks = ARBenchmarks.runBenchmarks;
+        self.benchmarkSets = ARBenchmarks.runBenchmarks;
         [NSOperationQueue.mainQueue addOperationWithBlock:^{
             [self.tableView reloadData];
-            barButtonItem.enabled = YES;
+            self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Run" style:UIBarButtonItemStyleBordered target:self action:@selector(runBenchmarks)];
         }];
     }];
 }
@@ -64,21 +63,12 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    if (self.benchmarks.count)
-    {
-        [self.activityIndicatorView stopAnimating];
-    }
-    else
-    {
-        [self.activityIndicatorView startAnimating];
-    }
-
-    return self.benchmarks.count;
+    return self.benchmarkSets.count;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return [self benchmarkNumber:section].count;
+    return [self benchmarkSet:section].count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -92,26 +82,19 @@
 
 - (void)configureCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSDictionary *benchmark = [self benchmarkNumber:indexPath.section result:indexPath.row];
-    NSMutableString *detail = [[NSMutableString alloc] initWithFormat:@"Avg. Runtime: %llu ns", [benchmark[@"time"] unsignedLongLongValue]];
-    if ([benchmark[@"winner"] boolValue])
+    ARBenchmark *benchmark = [self benchmarkSet:indexPath.section benchmark:indexPath.row];
+    NSMutableString *detail = [[NSMutableString alloc] initWithString:benchmark.timeText];
+    if (benchmark.winner)
     {
-        cell.backgroundColor = UIColor.greenColor;
-        double bonus = [benchmark[@"bonus"] doubleValue];
-        if (bonus > 1)
-        {
-            [detail appendFormat:@" -> %.2fx faster!", bonus];
-        }
-        else
-        {
-            [detail appendFormat:@" -> %.2f%% faster!", bonus*100];
-        }
+        cell.backgroundColor = [UIColor colorWithRed:46.0f/255.0f green:204.0f/255.0f blue:113.0f/255.0f alpha:1.0f];
+        [detail appendString:@" -> "];
+        [detail appendString:benchmark.advantageText];
     }
     else
     {
         cell.backgroundColor = UIColor.whiteColor;
     }
-    cell.textLabel.text = benchmark[@"name"];
+    cell.textLabel.text = benchmark.name;
     cell.detailTextLabel.text = detail;
 }
 

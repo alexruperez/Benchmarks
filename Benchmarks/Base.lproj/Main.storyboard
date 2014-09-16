@@ -80,14 +80,8 @@
                                 <action selector="showSettings" destination="vXZ-lx-hvc" id="aJd-sP-lC3"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="Run" id="Fiq-s8-H5K">
-                            <connections>
-                                <action selector="runBenchmarks:" destination="vXZ-lx-hvc" id="7n0-GI-E1V"/>
-                            </connections>
-                        </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="activityIndicatorView" destination="04a-YZ-gPw" id="dlm-3A-aaJ"/>
                         <outlet property="tableView" destination="Zl3-NY-cd1" id="VJp-zi-oQ3"/>
                     </connections>
                 </viewController>

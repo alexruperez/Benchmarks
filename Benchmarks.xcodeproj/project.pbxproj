@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D5127A6919C81AF9003AB3C5 /* ARBenchmark.m in Sources */ = {isa = PBXBuildFile; fileRef = D5127A6619C81AF9003AB3C5 /* ARBenchmark.m */; };
+		D5127A6A19C81AF9003AB3C5 /* ARBenchmarkSet.m in Sources */ = {isa = PBXBuildFile; fileRef = D5127A6819C81AF9003AB3C5 /* ARBenchmarkSet.m */; };
 		D56E040F19C6D25B0042590E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56E040E19C6D25B0042590E /* Foundation.framework */; };
 		D56E041119C6D25B0042590E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56E041019C6D25B0042590E /* CoreGraphics.framework */; };
 		D56E041319C6D25B0042590E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56E041219C6D25B0042590E /* UIKit.framework */; };
@@ -50,6 +52,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D5127A6519C81AF9003AB3C5 /* ARBenchmark.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARBenchmark.h; sourceTree = "<group>"; };
+		D5127A6619C81AF9003AB3C5 /* ARBenchmark.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARBenchmark.m; sourceTree = "<group>"; };
+		D5127A6719C81AF9003AB3C5 /* ARBenchmarkSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ARBenchmarkSet.h; sourceTree = "<group>"; };
+		D5127A6819C81AF9003AB3C5 /* ARBenchmarkSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ARBenchmarkSet.m; sourceTree = "<group>"; };
 		D56E040B19C6D25B0042590E /* Benchmarks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Benchmarks.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D56E040E19C6D25B0042590E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D56E041019C6D25B0042590E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -127,6 +133,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D5127A6419C81AF9003AB3C5 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				D5127A6519C81AF9003AB3C5 /* ARBenchmark.h */,
+				D5127A6619C81AF9003AB3C5 /* ARBenchmark.m */,
+				D5127A6719C81AF9003AB3C5 /* ARBenchmarkSet.h */,
+				D5127A6819C81AF9003AB3C5 /* ARBenchmarkSet.m */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		D56E040219C6D25B0042590E = {
 			isa = PBXGroup;
 			children = (
@@ -161,6 +178,7 @@
 		D56E041419C6D25B0042590E /* Benchmarks */ = {
 			isa = PBXGroup;
 			children = (
+				D5127A6419C81AF9003AB3C5 /* Model */,
 				D56E041D19C6D25B0042590E /* ARAppDelegate.h */,
 				D56E041E19C6D25B0042590E /* ARAppDelegate.m */,
 				D56E042019C6D25B0042590E /* Main.storyboard */,
@@ -368,6 +386,7 @@
 				D56E051C19C710B50042590E /* IASKPSSliderSpecifierViewCell.m in Sources */,
 				D56E051D19C710B50042590E /* IASKPSTextFieldSpecifierViewCell.m in Sources */,
 				D56E052419C715140042590E /* ARBenchmarks.m in Sources */,
+				D5127A6A19C81AF9003AB3C5 /* ARBenchmarkSet.m in Sources */,
 				D56E051719C710B50042590E /* IASKSettingsReader.m in Sources */,
 				D56E042819C6D25B0042590E /* ARViewController.m in Sources */,
 				D56E051919C710B50042590E /* IASKSettingsStoreFile.m in Sources */,
@@ -376,6 +395,7 @@
 				D56E051619C710B50042590E /* IASKSpecifierValuesViewController.m in Sources */,
 				D56E051B19C710B50042590E /* IASKSpecifier.m in Sources */,
 				D56E051519C710B50042590E /* IASKAppSettingsWebViewController.m in Sources */,
+				D5127A6919C81AF9003AB3C5 /* ARBenchmark.m in Sources */,
 				D56E051E19C710B50042590E /* IASKPSTitleValueSpecifierViewCell.m in Sources */,
 				D56E051F19C710B50042590E /* IASKSlider.m in Sources */,
 				D56E051419C710B50042590E /* IASKAppSettingsViewController.m in Sources */,

@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import "ARBenchmarkSet.h"
+
 @interface ARBenchmarks : NSObject
 
 + (NSArray *)runBenchmarks;

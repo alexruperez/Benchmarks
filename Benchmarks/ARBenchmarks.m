@@ -6,22 +6,15 @@
 //  Copyright (c) 2014 alexruperez. All rights reserved.
 //
 
-extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
-
 #import "ARBenchmarks.h"
 
-@interface ARObject : NSObject
+@interface NSObject (runBlock)
 
-- (void)method;
 - (void)runBlock:(void (^)(void))block;
 
 @end
 
-@implementation ARObject
-
-- (void)method
-{
-}
+@implementation NSObject (runBlock)
 
 - (void)runBlock:(void (^)(void))block
 {
@@ -32,43 +25,46 @@ extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
 
 @implementation ARBenchmarks
 
++ (void)load
+{
+    [NSUserDefaults.standardUserDefaults registerDefaults:@{@"iterations_preference": @100, @"sample_preference": @100, @"content_preference": @"", }];
+}
+
++ (NSUserDefaults *)userDefaults
+{
+    return NSUserDefaults.standardUserDefaults;
+}
+
 + (size_t)iterations
 {
-    return [[NSUserDefaults.standardUserDefaults objectForKey:@"iterations_preference"] longLongValue];
+    return [[self.userDefaults objectForKey:@"iterations_preference"] longLongValue];
 }
 
 + (size_t)sample
 {
-    return [[NSUserDefaults.standardUserDefaults objectForKey:@"sample_preference"] longLongValue];
+    return [[self.userDefaults objectForKey:@"sample_preference"] longLongValue];
 }
 
 + (NSString *)content
 {
-    return [NSUserDefaults.standardUserDefaults objectForKey:@"content_preference"];
+    return [self.userDefaults objectForKey:@"content_preference"];
 }
 
 + (NSArray *)runBenchmarks
 {
-    NSMutableArray *benchmarks = NSMutableArray.new;
+    NSArray *benchmarks = @[self.mutableArrayBenchmarkSet, self.arrayBenchmarkSet, self.blockBenchmarkSet];
 
-    [benchmarks addObject:self.mutableArrayBenchmarks];
-    [benchmarks addObject:self.arrayBenchmarks];
-    [benchmarks addObject:self.blockBenchmarks];
+    for (ARBenchmarkSet *benchmarkSet in benchmarks)
+    {
+        [benchmarkSet runAll:self.iterations];
+    }
 
     return benchmarks;
 }
 
-+ (NSArray *)mutableArrayBenchmarks
++ (ARBenchmarkSet *)mutableArrayBenchmarkSet
 {
-    NSMutableDictionary *arrayBenchmark = NSMutableDictionary.new;
-    NSMutableDictionary *arrayWithCapacityBenchmark = NSMutableDictionary.new;
-
-    arrayBenchmark[@"name"] = @"[[NSMutableArray array] addObject:]";
-    arrayWithCapacityBenchmark[@"name"] = @"[[NSMutableArray arrayWithCapacity] addObject:]";
-
-    NSLog(@"Running %@ benchmark. Iterations: %zu Sample: %zu Content: \"%@\"", arrayBenchmark[@"name"], self.iterations, self.sample, self.content);
-
-    uint64_t arrayBenchmarkTime = dispatch_benchmark(self.iterations, ^{
+    return [ARBenchmarkSet benchmarkSetWithBenchmarks:@[[ARBenchmark benchmarkWithName:@"[[NSMutableArray array] addObject:]" block:^{
         @autoreleasepool {
             NSMutableArray *mutableArray = [NSMutableArray array];
             for (size_t i = 0; i < self.sample; i++)
@@ -76,13 +72,7 @@ extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
                 [mutableArray addObject:self.content];
             }
         }
-    });
-
-    NSLog(@"Finished %@ benchmark. Avg. Runtime: %llu ns", arrayBenchmark[@"name"], arrayBenchmarkTime);
-
-    NSLog(@"Running %@ benchmark. Iterations: %zu Sample: %zu Content: \"%@\"", arrayWithCapacityBenchmark[@"name"], self.iterations, self.sample, self.content);
-
-    uint64_t arrayWithCapacityBenchmarkTime = dispatch_benchmark(self.iterations, ^{
+    }], [ARBenchmark benchmarkWithName:@"[[NSMutableArray arrayWithCapacity] addObject:]" block:^{
         @autoreleasepool {
             NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:self.sample];
             for (size_t i = 0; i < self.sample; i++)
@@ -90,152 +80,48 @@ extern uint64_t dispatch_benchmark(size_t count, void (^block)(void));
                 [mutableArray addObject:self.content];
             }
         }
-    });
-
-    NSLog(@"Finished %@ benchmark. Avg. Runtime: %llu ns", arrayWithCapacityBenchmark[@"name"], arrayWithCapacityBenchmarkTime);
-
-    arrayBenchmark[@"time"] = @(arrayBenchmarkTime);
-    arrayWithCapacityBenchmark[@"time"] = @(arrayWithCapacityBenchmarkTime);
-
-    if (arrayBenchmarkTime < arrayWithCapacityBenchmarkTime)
-    {
-        arrayBenchmark[@"winner"] = @YES;
-        arrayWithCapacityBenchmark[@"winner"] = @NO;
-        arrayBenchmark[@"bonus"] = arrayBenchmarkTime ? @(((double)arrayWithCapacityBenchmarkTime/(double)arrayBenchmarkTime) - 1) : @0;
-    }
-    else if (arrayWithCapacityBenchmarkTime < arrayBenchmarkTime)
-    {
-        arrayWithCapacityBenchmark[@"winner"] = @YES;
-        arrayBenchmark[@"winner"] = @NO;
-        arrayWithCapacityBenchmark[@"bonus"] = arrayWithCapacityBenchmarkTime ? @(((double)arrayBenchmarkTime/(double)arrayWithCapacityBenchmarkTime) - 1) : @0;
-    }
-    else
-    {
-        arrayBenchmark[@"winner"] = @NO;
-        arrayWithCapacityBenchmark[@"winner"] = @NO;
-    }
-
-    return @[arrayBenchmark, arrayWithCapacityBenchmark];
+    }]]];
 }
 
-+ (NSArray *)arrayBenchmarks
++ (ARBenchmarkSet *)arrayBenchmarkSet
 {
-    NSMutableDictionary *arrayForBenchmark = NSMutableDictionary.new;
-    NSMutableDictionary *arrayForInBenchmark = NSMutableDictionary.new;
-
-    arrayForBenchmark[@"name"] = @"for (i = 0; i < array.count; i++) [array[i] description]";
-    arrayForInBenchmark[@"name"] = @"for (id object in array) [object description]";
-
-    NSLog(@"Running %@ benchmark. Iterations: %zu Sample: %zu Content: \"%@\"", arrayForBenchmark[@"name"], self.iterations, self.sample, self.content);
-
-    NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:self.sample];
+    NSMutableArray *sampleArray = [NSMutableArray arrayWithCapacity:self.sample];
     for (size_t i = 0; i < self.sample; i++)
     {
-        [mutableArray addObject:self.content];
+        [sampleArray addObject:self.content];
     }
-
-    uint64_t arrayForBenchmarkTime = dispatch_benchmark(self.iterations, ^{
+    return [ARBenchmarkSet benchmarkSetWithBenchmarks:@[[ARBenchmark benchmarkWithName:@"for (i = 0; i < array.count; i++) [array[i] method]" block:^{
         @autoreleasepool {
-            for (size_t i = 0; i < mutableArray.count; i++)
+            for (size_t i = 0; i < sampleArray.count; i++)
             {
-                [mutableArray[i] description];
+                [sampleArray[i] description];
             }
         }
-    });
-
-    NSLog(@"Finished %@ benchmark. Avg. Runtime: %llu ns", arrayForBenchmark[@"name"], arrayForBenchmarkTime);
-
-    NSLog(@"Running %@ benchmark. Iterations: %zu Sample: %zu Content: \"%@\"", arrayForInBenchmark[@"name"], self.iterations, self.sample, self.content);
-
-    uint64_t arrayForInBenchmarkTime = dispatch_benchmark(self.iterations, ^{
+    }], [ARBenchmark benchmarkWithName:@"for (id object in array) [object method]" block:^{
         @autoreleasepool {
-            for (id object in mutableArray)
+            for (id object in sampleArray)
             {
                 [object description];
             }
         }
-    });
-
-    NSLog(@"Finished %@ benchmark. Avg. Runtime: %llu ns", arrayForInBenchmark[@"name"], arrayForInBenchmarkTime);
-
-    arrayForBenchmark[@"time"] = @(arrayForBenchmarkTime);
-    arrayForInBenchmark[@"time"] = @(arrayForInBenchmarkTime);
-
-    if (arrayForBenchmarkTime < arrayForInBenchmarkTime)
-    {
-        arrayForBenchmark[@"winner"] = @YES;
-        arrayForInBenchmark[@"winner"] = @NO;
-        arrayForBenchmark[@"bonus"] = arrayForBenchmarkTime ? @(((double)arrayForInBenchmarkTime/(double)arrayForBenchmarkTime) - 1) : @0;
-    }
-    else if (arrayForInBenchmarkTime < arrayForBenchmarkTime)
-    {
-        arrayForInBenchmark[@"winner"] = @YES;
-        arrayForBenchmark[@"winner"] = @NO;
-        arrayForInBenchmark[@"bonus"] = arrayForInBenchmarkTime ? @(((double)arrayForBenchmarkTime/(double)arrayForInBenchmarkTime) - 1) : @0;
-    }
-    else
-    {
-        arrayForBenchmark[@"winner"] = @NO;
-        arrayForInBenchmark[@"winner"] = @NO;
-    }
-
-    return @[arrayForBenchmark, arrayForInBenchmark];
+    }]]];
 }
 
-+ (NSArray *)blockBenchmarks
++ (ARBenchmarkSet *)blockBenchmarkSet
 {
-    NSMutableDictionary *methodBenchmark = NSMutableDictionary.new;
-    NSMutableDictionary *blockBenchmark = NSMutableDictionary.new;
-
-    methodBenchmark[@"name"] = @"[instance method]";
-    blockBenchmark[@"name"] = @"[instance runBlock:^{[instance method]}]";
-
-    NSLog(@"Running %@ benchmark. Iterations: %zu", methodBenchmark[@"name"], self.iterations);
-
-    uint64_t methodBenchmarkTime = dispatch_benchmark(self.iterations, ^{
+    return [ARBenchmarkSet benchmarkSetWithBenchmarks:@[[ARBenchmark benchmarkWithName:@"[object method]" block:^{
         @autoreleasepool {
-            ARObject *instance = [ARObject new];
-            [instance method];
+            NSObject *object = NSObject.new;
+            [object description];
         }
-    });
-
-    NSLog(@"Finished %@ benchmark. Avg. Runtime: %llu ns", methodBenchmark[@"name"], methodBenchmarkTime);
-
-    NSLog(@"Running %@ benchmark. Iterations: %zu", blockBenchmark[@"name"], self.iterations);
-
-    uint64_t blockBenchmarkTime = dispatch_benchmark(self.iterations, ^{
+    }], [ARBenchmark benchmarkWithName:@"[object runBlock:^{[object method]}]" block:^{
         @autoreleasepool {
-            ARObject *instance = [ARObject new];
-            [instance runBlock:^{
-                [instance method];
+            NSObject *object = NSObject.new;
+            [object runBlock:^{
+                [object description];
             }];
         }
-    });
-
-    NSLog(@"Finished %@ benchmark. Avg. Runtime: %llu ns", blockBenchmark[@"name"], blockBenchmarkTime);
-
-    methodBenchmark[@"time"] = @(methodBenchmarkTime);
-    blockBenchmark[@"time"] = @(blockBenchmarkTime);
-
-    if (methodBenchmarkTime < blockBenchmarkTime)
-    {
-        methodBenchmark[@"winner"] = @YES;
-        blockBenchmark[@"winner"] = @NO;
-        methodBenchmark[@"bonus"] = methodBenchmarkTime ? @(((double)blockBenchmarkTime/(double)methodBenchmarkTime) - 1) : @0;
-    }
-    else if (blockBenchmarkTime < methodBenchmarkTime)
-    {
-        blockBenchmark[@"winner"] = @YES;
-        methodBenchmark[@"winner"] = @NO;
-        blockBenchmark[@"bonus"] = blockBenchmarkTime ? @(((double)methodBenchmarkTime/(double)blockBenchmarkTime) - 1) : @0;
-    }
-    else
-    {
-        methodBenchmark[@"winner"] = @NO;
-        blockBenchmark[@"winner"] = @NO;
-    }
-
-    return @[methodBenchmark, blockBenchmark];
+    }]]];
 }
 
 @end

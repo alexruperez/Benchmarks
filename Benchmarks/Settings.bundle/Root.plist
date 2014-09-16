@@ -15,8 +15,6 @@
 			<string>None</string>
 			<key>AutocorrectionType</key>
 			<string>No</string>
-			<key>DefaultValue</key>
-			<string>100</string>
 			<key>IsSecure</key>
 			<false/>
 			<key>Key</key>
@@ -33,8 +31,6 @@
 			<string>None</string>
 			<key>AutocorrectionType</key>
 			<string>No</string>
-			<key>DefaultValue</key>
-			<string>100</string>
 			<key>IsSecure</key>
 			<false/>
 			<key>Key</key>
@@ -51,8 +47,6 @@
 			<string>None</string>
 			<key>AutocorrectionType</key>
 			<string>No</string>
-			<key>DefaultValue</key>
-			<string></string>
 			<key>IsSecure</key>
 			<false/>
 			<key>Key</key>
